@@ -1,55 +1,48 @@
-import React, {useEffect, useRef, useState} from 'react'
-import {Scrollbars} from 'react-custom-scrollbars'
-import {enhance} from '../_utility/color'
+import React, {Component, createRef} from 'react'
+import {Scrollbars} from 'react-custom-scrollbars-2'
+import {enhance} from "../_utility/color";
 
-function ScrollableContainer({className = '', color = '#aaaaaa', children}) {
+class ScrollableContainer extends Component {
 
-    const scRef = useRef()
-    const Sx = () => {
-        try {
-            return (
-                <style>
-                    {scRef.current.parentNode.parentNode.children[1].children[0].style.width === '0px' ? '' : `
-                        .LHXUI-ScrollableContrainer > div:nth-child(2) {
-                            background: ${enhance('lighter', color)}
-                        }
-                        .LHXUI-ScrollableContrainer > div:nth-child(2) > div {
-                            background: ${color}
-                        }
-                    `}
-                    {scRef.current.parentNode.parentNode.children[2].children[0].style.height === '0px' ? '' : `
-                        .LHXUI-ScrollableContrainer > div:nth-child(3) {
-                            background: ${enhance('lighter', color)}
-                        }
-                        .LHXUI-ScrollableContrainer > div:nth-child(3) > div {
-                            background: ${color}
-                        }
-                    `}
-                </style>
-            )
-        } catch {
-            return null
-        }
+    constructor(props) {
+        super(props)
+        this.className = this.props.className ?? ''
+        this.color = this.props.color ?? '#aaaaaa'
+        this.scrollX = this.props.scrollX
+        this.scrollY = this.props.scrollY
+        this.ref = createRef()
+        this.renderThumb = ({style, ...props}) => <div
+            style={{...style, background: this.color, borderRadius: "inherit"}} {...props}/>
+        this.scrollToLeft = () => this.ref.current.view.scroll({
+            left: this.ref.current.getScrollLeft() - 200, behavior: 'smooth'
+        })
+        this.scrollToRight = () => this.ref.current.view.scroll({
+            left: this.ref.current.getScrollLeft() + 200, behavior: 'smooth'
+        })
     }
-    const [sx, _sx] = useState(Sx())
-    useEffect(() => {
-        _sx(Sx())
-    }, [scRef.current, color])
 
-    return (
-        <Scrollbars
-            className={`LHXUI-ScrollableContrainer ${className}`.trim()}
-            autoHide
+    render() {
+        return (<Scrollbars
+            className={`LHXUI-ScrollableContrainer ${this.className}`.trim()}
+            renderThumbHorizontal={this.renderThumb}
+            renderThumbVertical={this.renderThumb}
+            ref={this.ref}
         >
-            <div
-                className={'LHXUI-ScrollableContrainer-Ref'}
-                ref={scRef}
-                style={{display: 'none'}}
-            />
-            {sx}
-            {children}
-        </Scrollbars>
-    )
+            <style>
+                {`
+                .LHXUI-ScrollableContrainer > div:nth-child(2) {
+                    background: ${enhance('lighter', this.color)};
+                    ${this.scrollX ? '' : 'display: none;'}
+                }
+                .LHXUI-ScrollableContrainer > div:nth-child(3) {
+                    background: ${enhance('lighter', this.color)};
+                    ${this.scrollY ? '' : 'display: none;'}
+                }
+                `}
+            </style>
+            {this.props.children}
+        </Scrollbars>)
+    }
 }
 
 export default ScrollableContainer
